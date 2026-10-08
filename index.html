@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora - fletero.app</title>
+    <!-- Librería para generar el PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        /* =========================================
+           DISEÑO CORPORATIVO MODERNO (UI/UX)
+           ========================================= */
+        :root {
+            --primary: #0f172a;    /* Azul Noche */
+            --accent: #f97316;     /* Naranja Logístico */
+            --bg: #f1f5f9;         /* Gris claro de fondo */
+            --card: #ffffff;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        
+        body { background-color: var(--bg); color: var(--text-dark); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
+
+        /* Barra de navegación superior */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        .app-container {
+            background: var(--card);
+            width: 100%;
+            max-width: 500px;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            overflow: hidden;
+        }
+
+        /* Cabecera con el Logo/Título */
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 5px solid var(--accent);
+        }
+        .header h1 { font-size: 28px; font-weight: 800; letter-spacing: -1px; margin-bottom: 5px; }
+        .header span { color: var(--accent); }
+        .header p { color: #cbd5e1; font-size: 14px; }
+
+        .form-content { padding: 30px; }
+
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text-dark); }
+        
+        /* Campos de texto estilizados */
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            color: var(--text-dark);
+            background-color: #f8fafc;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1);
+        }
+
+        /* Botón Principal Animado */
+        .btn-primary {
+            width: 100%;
+            background: var(--accent);
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.3);
+            margin-top: 10px;
+        }
+        .btn-primary:hover { background: #ea580c; transform: translateY(-2px); }
+        .btn-primary:active { transform: translateY(0); }
+
+        /* Estilos del Recibo / Resultado */
+        #resultado_box { display: none; margin-top: 25px; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .pdf-container { padding: 20px; background: #fff; border: 2px dashed #cbd5e1; border-radius: 10px; }
+        .pdf-container h2 { text-align: center; color: var(--primary); font-size: 20px; margin-bottom: 15px; }
+        
+        .table-result { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        .table-result th, .table-result td { padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+        .table-result th { color: var(--text-muted); font-weight: 600; }
+        .table-result .total-row { background: var(--primary); color: white; font-size: 18px; }
+        
+        /* Botones de Acción (PDF y Agendar) */
+        .action-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-pdf { flex: 1; background: #64748b; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-pdf:hover { background: #475569; }
+        .btn-agenda { flex: 1; background: #10b981; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-agenda:hover { background: #059669; }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA DE NAVEGACIÓN RECUPERADA -->
+    <div class="top-nav">
+        <span id="nombre_usuario" style="font-weight: 700; color: var(--primary);">👋 Bienvenido</span>
+        <div id="botones_nav" style="display: flex; gap: 10px;"></div>
+    </div>
+
+    <div class="app-container">
+        <div class="header">
+            <h1>fletero<span>.app</span> 🚚</h1>
+            <p>Cotizador Inteligente de Carga</p>
+        </div>
+
+        <div class="form-content">
+            <div class="input-group">
+                <label>📍 Punto de Carga (Origen):</label>
+                <input type="text" id="origen" placeholder="Ej: Valencia, Carabobo">
+            </div>
+            
+            <div class="input-group">
+                <label>🏁 Punto de Descarga (Destino):</label>
+                <input type="text" id="destino" placeholder="Ej: Caracas, Distrito Capital">
+            </div>
+
+            <div class="input-group">
+                <label>⚖️ Peso de la carga (Kg):</label>
+                <input type="number" id="peso" placeholder="Ej: 800">
+            </div>
+
+            <div class="input-group">
+                <label>📦 Tipo de Carga:</label>
+                <select id="tipo_carga">
+                    <option value="">Cargando opciones...</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>📅 Fecha deseada para el flete:</label>
+                <input type="date" id="fecha_servicio">
+            </div>
+
+            <div class="input-group">
+                <label>📱 Tu número de WhatsApp:</label>
+                <input type="text" id="telefono_cliente" placeholder="Ej: 04141234567">
+            </div>
+
+            <button class="btn-primary" onclick="calcularFlete()">💰 Calcular Precio</button>
+
+            <!-- CAJA DE RESULTADO (Oculta hasta calcular) -->
+            <div id="resultado_box">
+               <!-- Zona que se exporta a PDF -->
+                <div id="documento_pdf" class="pdf-container" style="padding: 30px 20px;">
+                    <!-- INICIO DEL MEMBRETE CORPORATIVO -->
+                    <table style="width: 100%; border-bottom: 3px solid #f97316; padding-bottom: 10px; margin-bottom: 20px;">
+                        <tr>
+                            <td style="text-align: left; vertical-align: bottom;">
+                                <h1 style="color: #0f172a; font-size: 28px; margin: 0;">fletero<span style="color: #f97316;">.app</span> 🚚</h1>
+                                <p style="color: #64748b; font-size: 12px; margin: 4px 0 0 0; font-weight: bold;">Soluciones Logísticas Inteligentes</p>
+                                <p style="color: #64748b; font-size: 11px; margin: 2px 0 0 0;">WhatsApp: +58 412-3418949</p>
+                            </td>
+                            <td style="text-align: right; vertical-align: bottom;">
+                                <h2 style="color: #0f172a; font-size: 20px; margin: 0; letter-spacing: 1px;">COTIZACIÓN DE FLETE</h2>
+                                <p style="color: #64748b; font-size: 12px; margin: 5px 0 0 0;">Emisión: <b><span id="pdf_fecha_emision"></span></b></p>
+                            </td>
+                        </tr>
+                    </table>
+                    <!-- FIN DEL MEMBRETE -->
+
+                    <p style="font-size: 14px;"><b>Atención a:</b> <span id="pdf_cliente" style="color: var(--primary); font-weight: bold;"></span></p>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px;"><b>Ruta a cubrir:</b> <span id="res_ruta"></span></p>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px;"><b>Fecha de Carga Solicitada:</b> <span id="res_fecha"></span></p>
+                    
+                    <table class="table-result" style="margin-top: 20px;">
+                        <tr style="background-color: #f1f5f9;">
+                            <th style="padding: 12px; border-radius: 8px 0 0 0;">Concepto de Facturación</th>
+                            <th style="padding: 12px; border-radius: 0 8px 0 0;">Monto Calculado</th>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px;">Recorrido de Flete (<span id="res_distancia"></span> km)</td>
+                            <td style="padding: 12px; font-weight: bold;">$<span id="res_subtotal"></span></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px;">Despliegue y Acercamiento de Unidad</td>
+                            <td style="padding: 12px; font-weight: bold;">$<span id="res_base"></span></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px;">Recargo Especializado (Tipo de Carga)</td>
+                            <td style="padding: 12px; font-weight: bold;">$<span id="res_recargo"></span></td>
+                        </tr>
+                        <tr class="total-row">
+                            <th style="padding: 15px; color: white; border-bottom: none; border-radius: 0 0 0 8px; text-transform: uppercase;">Inversión Total Estimada</th>
+                            <th style="padding: 15px; color: white; border-bottom: none; border-radius: 0 0 8px 0; font-size: 20px;">$<span id="res_total"></span></th>
+                        </tr>
+                    </table>
+                    
+                    <!-- NOTAS FINALES DEL PDF -->
+                    <div style="margin-top: 30px; padding: 15px; background-color: #f8fafc; border-left: 4px solid #f97316; border-radius: 4px;">
+                        <p style="font-size: 11px; color: #475569; margin: 0;"><b>Nota Importante:</b> Esta cotización es un estimado basado en distancias satelitales. Las tarifas están sujetas a la confirmación de disponibilidad de las unidades y revisión final de la carga. Documento generado automáticamente por <b>fletero.app</b>.</p>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-pdf" onclick="descargarPDF()">📄 Bajar PDF</button>
+                    <button class="btn-agenda" onclick="agendarServicio()">✅ Agendar Viaje</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Candado de seguridad para clientes
+        const sesion = JSON.parse(localStorage.getItem('usuario'));
+        if (!sesion) {
+            window.location.href = '/login.html';
+        }
+
+        // Mostrar nombre del usuario y configurar botones de ADMIN recuperados
+        document.getElementById('nombre_usuario').innerText = `👋 Hola, ${sesion.nombre_completo}`;
+        let botonesHTML = `<button onclick="cerrarSesion()" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold;">🚪 Salir</button>`;
+        if (sesion.rol === 'admin') {
+            botonesHTML = `<button onclick="window.location.href='/admin.html'" style="background:#f59e0b; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold;">⚙️ Panel Master</button>` + botonesHTML;
+        }
+        document.getElementById('botones_nav').innerHTML = botonesHTML;
+
+        function cerrarSesion() {
+            localStorage.removeItem('usuario');
+            window.location.href = '/login.html';
+        }
+
+        // Cargar lista de cargas al iniciar
+        document.addEventListener("DOMContentLoaded", async () => {
+            const res = await fetch('http://localhost:3000/api/cargas');
+            const cargas = await res.json();
+            const select = document.getElementById('tipo_carga');
+            select.innerHTML = '';
+            cargas.forEach(c => {
+                select.innerHTML += `<option value="${c.id}">${c.nombre} (+${c.recargo_porcentaje}%)</option>`;
+            });
+        });
+
+        // 2. RECUPERADO: Variables e initMap para Google Maps Autocomplete
+        let autocompleteOrigen, autocompleteDestino;
+        function initMap() {
+            autocompleteOrigen = new google.maps.places.Autocomplete(document.getElementById('origen'));
+            autocompleteDestino = new google.maps.places.Autocomplete(document.getElementById('destino'));
+        }
+
+        // 3. Lógica Principal de Cálculo
+        async function calcularFlete() {
+            const origen = document.getElementById('origen').value;
+            const destino = document.getElementById('destino').value;
+            const peso = document.getElementById('peso').value;
+            const tipoCarga = document.getElementById('tipo_carga').value;
+
+            if(!origen || !destino || !peso) return alert("Por favor llena el origen, destino y peso.");
+
+            const resConfig = await fetch('http://localhost:3000/api/configuracion');
+            const config = await resConfig.json();
+            const centroOperaciones = config.centro_operaciones;
+
+            const service = new google.maps.DistanceMatrixService();
+
+            service.getDistanceMatrix({
+                origins: [centroOperaciones],
+                destinations: [origen],
+                travelMode: 'DRIVING'
+            }, (resAcercamiento, stat1) => {
+                if (stat1 !== 'OK' || !resAcercamiento.rows[0].elements[0].distance) {
+                    return alert("No se pudo calcular la ruta de acercamiento.");
+                }
+                const distancia_acercamiento_km = resAcercamiento.rows[0].elements[0].distance.value / 1000;
+
+                service.getDistanceMatrix({
+                    origins: [origen],
+                    destinations: [destino],
+                    travelMode: 'DRIVING'
+                }, async (resFlete, stat2) => {
+                    if (stat2 !== 'OK' || !resFlete.rows[0].elements[0].distance) {
+                        return alert("No se pudo calcular la ruta del flete.");
+                    }
+                    const distancia_flete_km = resFlete.rows[0].elements[0].distance.value / 1000;
+
+                    const res = await fetch('http://localhost:3000/api/calcular-flete', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            distancia_flete_km: distancia_flete_km,
+                            distancia_acercamiento_km: distancia_acercamiento_km,
+                            peso_kg: parseFloat(peso),
+                            tipo_carga_id: parseInt(tipoCarga)
+                        })
+                    });
+
+                    const data = await res.json();
+
+                    if(data.error) {
+                        alert(data.error);
+                    } else {
+                        document.getElementById('resultado_box').style.display = 'block';
+                        document.getElementById('res_ruta').innerText = `${origen} ➔ ${destino}`;
+                        document.getElementById('res_distancia').innerText = data.distancia_ida_vuelta.toFixed(2);
+                        document.getElementById('res_subtotal').innerText = data.subtotal_distancia.toFixed(2);
+                        document.getElementById('res_recargo').innerText = data.recargo_carga.toFixed(2);
+                        document.getElementById('res_base').innerText = data.tarifa_base.toFixed(2);
+                        document.getElementById('res_total').innerText = data.total_a_pagar.toFixed(2);
+                        
+                        // Aquí rellenamos el PDF con la información calculada
+                        document.getElementById('pdf_cliente').innerText = sesion.nombre_completo;
+                        document.getElementById('res_fecha').innerText = document.getElementById('fecha_servicio').value || "No especificada";
+                        
+                        // --- ESTAS DOS LÍNEAS SON LAS NUEVAS ---
+                        const fechaHoy = new Date().toLocaleDateString('es-VE');
+                        document.getElementById('pdf_fecha_emision').innerText = fechaHoy;
+                    }
+                });
+            });
+        }
+
+        // 4. Generar PDF
+       // 4. Generar PDF (Versión Anti-Bloqueo Visual)
+        function descargarPDF() {
+            // 1. Subimos la pantalla al tope para que la "cámara" no se pierda
+            window.scrollTo(0, 0);
+            
+            // 2. Le quitamos temporalmente el candado visual al contenedor
+            const appContainer = document.querySelector('.app-container');
+            appContainer.style.overflow = 'visible';
+
+            const elemento = document.getElementById('documento_pdf');
+            const opciones = {
+                margin: 10,
+                filename: 'Cotizacion_Fletero.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2, 
+                    scrollY: 0 // Fuerza a tomar la foto desde la coordenada cero
+                },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            // 3. Tomamos la foto y luego le devolvemos su estilo original
+            html2pdf().set(opciones).from(elemento).save().then(() => {
+                appContainer.style.overflow = 'hidden';
+            });
+        }
+
+       // 5. Agendar con WhatsApp (ACTUALIZADO PARA AVISAR AL MASTER)
+        async function agendarServicio() {
+            const fecha = document.getElementById('fecha_servicio').value;
+            const telefono = document.getElementById('telefono_cliente').value;
+            
+            if(!fecha) return alert("Por favor selecciona una fecha para agendar el servicio.");
+            if(!telefono) return alert("Por favor ingresa tu número de WhatsApp para poder contactarte.");
+
+            const origen = document.getElementById('origen').value;
+            const destino = document.getElementById('destino').value;
+            const total = document.getElementById('res_total').innerText;
+
+            const body = {
+                usuario_id: sesion.id,
+                origen: origen,
+                destino: destino,
+                fecha_servicio: fecha,
+                monto_total: total,
+                telefono: telefono
+            };
+
+            const res = await fetch('http://localhost:3000/api/solicitar-servicio', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            const data = await res.json();
+            if(data.error) return alert("Hubo un error: " + data.error);
+            
+            alert("¡Éxito! Tu solicitud ha sido agendada en nuestro sistema. Serás redirigido a WhatsApp para confirmar.");
+
+            // Redirección al WhatsApp del Master (Punto 4)
+            const masterPhone = "584123418949";
+            const msjAlMaster = `🚨 *NUEVA SOLICITUD DE FLETE* 🚨%0A%0A¡Hola *fletero.app*! Acabo de agendar un viaje por la plataforma.%0A%0A*Cliente:* ${sesion.nombre_completo}%0A*Mi Teléfono:* ${telefono}%0A*Ruta:* ${origen} ➔ ${destino}%0A*Fecha Solicitada:* ${fecha}%0A*Cotización:* $${total}%0A%0AQuedo atento a su confirmación.`;
+            
+            window.open(`https://wa.me/${masterPhone}?text=${msjAlMaster}`, '_blank');
+        }
+    </script>
+
+    <!-- SCRIPT DE GOOGLE MAPS RECUPERADO CON TU API KEY REAL -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD4AVYLnsKl1EnSgzSN3bQggFCqgCrVLec&libraries=places&callback=initMap"></script>
+
+</body>
+</html>

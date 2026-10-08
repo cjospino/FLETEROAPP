@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Master - fletero.app</title>
+    <style>
+        /* =========================================
+           DISEÑO CORPORATIVO MASTER (UI/UX)
+           ========================================= */
+        :root {
+            --primary: #0f172a;
+            --accent: #f97316;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg); color: var(--text-dark); padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+
+        .top-nav {
+            display: flex; justify-content: space-between; align-items: center;
+            background: white; padding: 15px 25px; border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 30px;
+        }
+        .nav-brand { font-weight: 800; font-size: 20px; color: var(--primary); }
+        .nav-brand span { color: var(--accent); }
+        .nav-buttons { display: flex; gap: 10px; }
+        
+        .btn-nav { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 13px; }
+        .btn-nav.danger { background: #fee2e2; color: var(--danger); }
+        .btn-nav.danger:hover { background: var(--danger); color: white; }
+        .btn-nav:hover:not(.danger) { background: #1e293b; }
+
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { font-size: 30px; color: var(--primary); font-weight: 800; letter-spacing: -1px; }
+        .header p { color: var(--text-muted); font-size: 15px; margin-top: 5px; }
+
+        .card {
+            background: var(--card); padding: 25px; border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); margin-bottom: 25px;
+            border-top: 4px solid var(--primary);
+        }
+        .card.accent { border-top-color: var(--accent); }
+        .card h2 { font-size: 18px; color: var(--primary); margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+        .card p.desc { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
+
+        .form-group { display: flex; gap: 12px; align-items: center; margin-top: 15px; flex-wrap: wrap; }
+        input, select {
+            flex: 1; padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 8px;
+            background-color: #f8fafc; color: var(--text-dark); transition: 0.3s; font-size: 14px;
+            min-width: 150px;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--accent); background-color: #fff; }
+
+        .btn {
+            background: var(--primary); color: white; border: none; padding: 12px 20px;
+            border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; white-space: nowrap;
+        }
+        .btn.accent { background: var(--accent); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .btn.accent:hover { background: #ea580c; }
+        
+        .btn-delete { background: #fee2e2; color: var(--danger); border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.2s; }
+        .btn-delete:hover { background: var(--danger); color: white; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #f1f5f9; }
+        th { background: #f8fafc; color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; border-radius: 6px; }
+        tbody tr { transition: background 0.2s; }
+        tbody tr:hover { background: #f8fafc; }
+        
+        .status-select { 
+            padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px; 
+            font-weight: 600; background: white; cursor: pointer; width: 100%; margin-bottom: 8px; outline: none;
+        }
+        .status-select:focus { border-color: var(--primary); }
+        
+        .btn-wa { 
+            background: #dcfce7; color: #166534; border: none; padding: 8px; 
+            border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-size: 13px; transition: 0.2s;
+        }
+        .btn-wa:hover { background: var(--success); color: white; }
+        
+        .row-completada { background-color: #f1f5f9 !important; opacity: 0.6; }
+        .row-completada:hover { opacity: 1; }
+
+        .client-info { line-height: 1.4; }
+        .client-info small { color: var(--text-muted); display: block; }
+        .client-phone { color: var(--success); font-weight: bold; font-size: 12px; margin-top: 3px; display: inline-block; background: #dcfce7; padding: 2px 6px; border-radius: 4px;}
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- NAVBAR CORPORATIVA -->
+        <div class="top-nav">
+            <div class="nav-brand">fletero<span>.app</span> Master</div>
+            <div class="nav-buttons">
+                <button class="btn-nav" onclick="window.location.href='/'">🧮 Ir a Calculadora</button>
+                <button class="btn-nav danger" onclick="cerrarSesion()">🚪 Cerrar Sesión</button>
+            </div>
+        </div>
+
+        <div class="header">
+            <h1>⚙️ Centro de Control</h1>
+            <p>Administración de tarifas, rutas, clientes y despachos.</p>
+        </div>
+
+        <!-- NUEVO: Módulo de Clientes (Punto 1) -->
+        <div class="card" style="border-top-color: #8b5cf6;">
+            <h2>👥 Directorio de Clientes Registrados</h2>
+            <p class="desc">Lista corporativa de los usuarios en la plataforma.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre / Empresa</th>
+                        <th>C.I. / RIF</th>
+                        <th>Correo Electrónico</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla_clientes">
+                    <!-- Se llena con JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Módulo de Configuración Global -->
+        <div class="card accent">
+            <h2>📍 Base de Operaciones y Costo de Acercamiento</h2>
+            <p class="desc">Calcula el flete en vacío desde tu estacionamiento hasta el punto de carga del cliente.</p>
+            <div class="form-group">
+                <input type="text" id="conf_centro" placeholder="Ej: Valencia, Carabobo" style="flex: 2;">
+                <input type="number" id="conf_costo" step="0.01" placeholder="Costo por Km ($)" style="flex: 1;">
+                <button class="btn accent" onclick="guardarConfig()">Guardar Cambios</button>
+            </div>
+        </div>
+
+        <!-- Módulo de Tarifas por Peso -->
+        <div class="card">
+            <h2>📊 Tabulador de Costos por Kilómetro (Según Peso)</h2>
+            <p class="desc">Define cuánto cuesta cada kilómetro recorrido según el peso de la mercancía.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rango de Peso (Kg)</th>
+                        <th>Costo por Km ($)</th>
+                        <th style="width: 100px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-tarifas">
+                    <!-- Se llena con JavaScript -->
+                </tbody>
+            </table>
+            <div class="form-group">
+                <input type="number" id="peso_min" placeholder="Peso Mínimo">
+                <input type="number" id="peso_max" placeholder="Peso Máximo">
+                <input type="number" id="costo_km" step="0.01" placeholder="Costo por Km ($)">
+                <button class="btn" onclick="agregarTarifa()">+ Agregar Rango</button>
+            </div>
+        </div>
+
+        <!-- Módulo de Tipos de Carga -->
+        <div class="card">
+            <h2>📦 Tipos de Carga y Recargos Especiales</h2>
+            <p class="desc">Añade porcentajes extra si la carga requiere manejo especial (Ej. Refrigerada, Delicada).</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tipo de Carga</th>
+                        <th>Recargo (%)</th>
+                        <th style="width: 100px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-cargas">
+                    <!-- Se llena con JavaScript -->
+                </tbody>
+            </table>
+            <div class="form-group">
+                <input type="text" id="nombre_carga" placeholder="Nombre (Ej. Equipos Pesados)">
+                <input type="number" id="recargo_porcentaje" step="0.1" placeholder="Porcentaje (Ej. 10)">
+                <button class="btn" onclick="agregarCarga()">+ Agregar Carga</button>
+            </div>
+        </div>
+
+        <!-- Bandeja de Entrada de Solicitudes ACTUALIZADA (Puntos 2 y 3) -->
+        <div class="card" style="border-top-color: #3b82f6;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <h2>📅 Solicitudes de Flete</h2>
+                
+                <!-- NUEVO: Filtro de estados (Punto 2) -->
+                <select id="filtro_estado" onchange="cargarSolicitudes()" style="padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-weight: bold; cursor: pointer; outline: none;">
+                    <option value="Todos">📦 Mostrar Todos los Estados</option>
+                    <option value="Pendiente">⏳ Solo Pendientes</option>
+                    <option value="Confirmada">✅ Solo Confirmadas</option>
+                    <option value="En Tránsito">🚚 Solo En Tránsito</option>
+                    <option value="Completada">🏁 Solo Completadas</option>
+                    <option value="Cancelada">❌ Solo Canceladas</option>
+                </select>
+            </div>
+            
+            <p class="desc" style="margin-top: 5px;">Control de despachos y comunicación automática por WhatsApp.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 110px;">Fecha</th>
+                        <th>Cliente</th>
+                        <th>Ruta del Flete</th>
+                        <th>Total</th>
+                        <th style="width: 160px;">Gestión</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla_solicitudes">
+                    <!-- Se llena con JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- =========================================
+         LÓGICA DEL SISTEMA 
+         ========================================= -->
+    <script>
+        // 🔒 Candado de seguridad nivel MASTER
+        const sesionAdmin = JSON.parse(localStorage.getItem('usuario'));
+        if (!sesionAdmin || sesionAdmin.rol !== 'admin') {
+            alert("Acceso denegado. Área exclusiva para Master.");
+            window.location.href = '/login.html';
+        }
+
+        // 🚀 Inicialización al cargar la página
+        document.addEventListener("DOMContentLoaded", () => {
+            try { cargarSolicitudes(); } catch(e) {}
+            try { cargarClientes(); } catch(e) {} // <- Llama a los clientes
+            try { cargarConfig(); } catch(e) {}
+            try { cargarTarifas(); } catch(e) {}
+            try { cargarCargas(); } catch(e) {}
+        });
+
+        // NUEVO: Función para cargar Clientes (Punto 1)
+        async function cargarClientes() {
+            const res = await fetch('http://localhost:3000/api/admin/clientes');
+            const data = await res.json();
+            const tbody = document.getElementById('tabla_clientes');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            data.forEach(c => {
+                tbody.innerHTML += `<tr>
+                    <td><b>${c.nombre_completo}</b></td>
+                    <td>${c.documento_identidad}</td>
+                    <td style="color: var(--text-muted);">${c.email}</td>
+                </tr>`;
+            });
+        }
+
+        // --- FUNCIONES DE CONFIGURACIÓN Y TABULADORES ---
+        async function cargarConfig() {
+            const res = await fetch('http://localhost:3000/api/configuracion');
+            const config = await res.json();
+            document.getElementById('conf_centro').value = config.centro_operaciones;
+            document.getElementById('conf_costo').value = config.costo_km_acercamiento;
+        }
+
+        async function guardarConfig() {
+            const centro = document.getElementById('conf_centro').value;
+            const costo = document.getElementById('conf_costo').value;
+            await fetch('http://localhost:3000/api/configuracion', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ centro_operaciones: centro, costo_km_acercamiento: costo })
+            });
+            alert("Configuración base guardada correctamente.");
+        }
+
+        async function cargarTarifas() {
+            const res = await fetch('http://localhost:3000/api/tarifas');
+            const tarifas = await res.json();
+            const tbody = document.getElementById('tabla-tarifas');
+            tbody.innerHTML = '';
+            tarifas.forEach(t => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>De <b>${t.peso_min_kg}</b> a <b>${t.peso_max_kg}</b> Kg</td>
+                        <td>$${t.costo_por_km.toFixed(2)}</td>
+                        <td><button class="btn-delete" onclick="eliminarTarifa(${t.id})">Eliminar</button></td>
+                    </tr>`;
+            });
+        }
+
+        async function cargarCargas() {
+            const res = await fetch('http://localhost:3000/api/cargas');
+            const cargas = await res.json();
+            const tbody = document.getElementById('tabla-cargas');
+            tbody.innerHTML = '';
+            cargas.forEach(c => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><b>${c.nombre}</b></td>
+                        <td>+${c.recargo_porcentaje}%</td>
+                        <td><button class="btn-delete" onclick="eliminarCarga(${c.id})">Eliminar</button></td>
+                    </tr>`;
+            });
+        }
+
+        async function agregarTarifa() {
+            const min = document.getElementById('peso_min').value;
+            const max = document.getElementById('peso_max').value;
+            const costo = document.getElementById('costo_km').value;
+            if(!min || !max || !costo) return alert("Llena todos los campos.");
+            await fetch('http://localhost:3000/api/tarifas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ peso_min_kg: min, peso_max_kg: max, costo_por_km: costo })
+            });
+            document.getElementById('peso_min').value = '';
+            document.getElementById('peso_max').value = '';
+            document.getElementById('costo_km').value = '';
+            cargarTarifas(); 
+        }
+
+        async function agregarCarga() {
+            const nombre = document.getElementById('nombre_carga').value;
+            const recargo = document.getElementById('recargo_porcentaje').value;
+            if(!nombre || !recargo) return alert("Llena todos los campos.");
+            await fetch('http://localhost:3000/api/cargas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre: nombre, recargo_porcentaje: recargo })
+            });
+            document.getElementById('nombre_carga').value = '';
+            document.getElementById('recargo_porcentaje').value = '';
+            cargarCargas(); 
+        }
+
+        async function eliminarTarifa(id) {
+            if(confirm("¿Seguro que deseas eliminar este rango de peso?")) {
+                await fetch(`http://localhost:3000/api/tarifas/${id}`, { method: 'DELETE' });
+                cargarTarifas();
+            }
+        }
+
+        async function eliminarCarga(id) {
+            if(confirm("¿Seguro que deseas eliminar este tipo de carga?")) {
+                await fetch(`http://localhost:3000/api/cargas/${id}`, { method: 'DELETE' });
+                cargarCargas();
+            }
+        }
+
+        function cerrarSesion() {
+            localStorage.removeItem('usuario');
+            window.location.href = '/login.html';
+        }
+
+        // --- FUNCIONES DE SOLICITUDES ACTUALIZADAS ---
+        async function cargarSolicitudes() {
+            const res = await fetch('http://localhost:3000/api/admin/solicitudes');
+            const data = await res.json();
+            
+            const filtro = document.getElementById('filtro_estado').value;
+            const tbody = document.getElementById('tabla_solicitudes');
+            if(!tbody) return; 
+            
+            tbody.innerHTML = '';
+
+            // NUEVO: Filtramos la data antes de dibujarla (Punto 2)
+            const filtradas = data.filter(s => filtro === 'Todos' || s.estado === filtro);
+
+            filtradas.forEach(s => {
+                const isCompletada = s.estado === 'Completada' ? 'row-completada' : '';
+                
+                // NUEVO: Solo mostrar botón rojo de Eliminar si está Cancelada (Punto 3)
+                let btnEliminar = '';
+                if(s.estado === 'Cancelada') {
+                    btnEliminar = `<button class="btn-delete" style="width: 100%; margin-top: 5px; background: var(--danger); color: white;" onclick="eliminarSolicitud(${s.id})">🗑️ Borrar Definitivo</button>`;
+                }
+                
+                tbody.innerHTML += `
+                    <tr class="${isCompletada}">
+                        <td><b>${s.fecha_servicio}</b></td>
+                        <td class="client-info">
+                            <b>${s.nombre_completo || 'Cliente Desconocido'}</b>
+                            <small>${s.email || 'Sin correo'}</small>
+                            <span class="client-phone">📱 ${s.telefono || 'Sin número'}</span>
+                        </td>
+                        <td style="color: var(--text-muted); font-size: 13px;">${s.origen} <br><b>➔</b><br> ${s.destino}</td>
+                        <td><b>$${s.monto_total}</b></td>
+                        <td>
+                            <select class="status-select" onchange="cambiarEstado(${s.id}, this.value, '${s.telefono}', '${s.nombre_completo}', '${s.fecha_servicio}')">
+                                <option value="Pendiente" ${s.estado === 'Pendiente' ? 'selected' : ''}>⏳ Pendiente</option>
+                                <option value="Confirmada" ${s.estado === 'Confirmada' ? 'selected' : ''}>✅ Confirmada</option>
+                                <option value="En Tránsito" ${s.estado === 'En Tránsito' ? 'selected' : ''}>🚚 En Tránsito</option>
+                                <option value="Completada" ${s.estado === 'Completada' ? 'selected' : ''}>🏁 Completada</option>
+                                <option value="Cancelada" ${s.estado === 'Cancelada' ? 'selected' : ''}>❌ Cancelada</option>
+                            </select>
+                            
+                            <button class="btn-wa" onclick="enviarWhatsApp('${s.telefono}', '${s.nombre_completo}', '${s.fecha_servicio}')">
+                                WhatsApp Libre
+                            </button>
+                            ${btnEliminar}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // NUEVO: Función para eliminar de la base de datos (Punto 3)
+        async function eliminarSolicitud(id) {
+            if(confirm("¿Seguro que deseas ELIMINAR definitivamente esta solicitud cancelada de la base de datos?")) {
+                await fetch(`http://localhost:3000/api/solicitudes/${id}`, { method: 'DELETE' });
+                cargarSolicitudes(); // Recarga la tabla
+            }
+        }
+
+        // El motor inteligente de Cambio de Estado (Con Anti-Bloqueo de Chrome)
+        async function cambiarEstado(id, nuevoEstado, telefono, nombre, fecha) {
+            let mensajePersonalizado = "";
+            let enviarWa = false;
+            let waTab = null;
+
+            if (nuevoEstado === "Confirmada") {
+                mensajePersonalizado = `Hola ${nombre}, te contactamos de *fletero.app* 🚚. ¡Excelentes noticias! Tu solicitud de flete para el *${fecha}* ha sido revisada y *CONFIRMADA*. Ya estamos listos para atenderte.`;
+            } else if (nuevoEstado === "En Tránsito") {
+                mensajePersonalizado = `Hola ${nombre}, somos de *fletero.app* 🚚. Te avisamos que la unidad asignada a tu flete del *${fecha}* se encuentra en este momento *EN TRÁNSITO* 🛣️.`;
+            } else if (nuevoEstado === "Completada") {
+                mensajePersonalizado = `Hola ${nombre}, desde *fletero.app* 🚚 queremos informarte que tu servicio del *${fecha}* ha sido *COMPLETADO* exitosamente ✅. ¡Muchas gracias por confiar en nosotros!`;
+            } else if (nuevoEstado === "Cancelada") {
+                mensajePersonalizado = `Hola ${nombre}, te escribimos de *fletero.app*. Lamentamos informarte que tu solicitud para el *${fecha}* ha sido *CANCELADA*. Si tienes alguna duda, estamos a tu disposición.`;
+            }
+
+            if (mensajePersonalizado !== "" && telefono && telefono !== 'undefined' && telefono !== 'null') {
+                if (confirm(`El estado cambiará a "${nuevoEstado}".\n\n¿Deseas enviar el mensaje automático por WhatsApp al cliente?`)) {
+                    enviarWa = true;
+                    waTab = window.open('about:blank', '_blank'); 
+                }
+            }
+
+            try {
+                const res = await fetch(`http://localhost:3000/api/solicitudes/${id}/estado`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ estado: nuevoEstado })
+                });
+                const data = await res.json();
+                
+                if(data.error) {
+                    if (waTab) waTab.close();
+                    return alert("Hubo un error al actualizar: " + data.error);
+                }
+
+                if (enviarWa) {
+                    let num = telefono.replace(/\D/g,'');
+                    if(num.startsWith('0')) num = '58' + num.substring(1);
+                    if(!num.startsWith('58')) num = '58' + num;
+                    
+                    const url = `https://wa.me/${num}?text=${encodeURIComponent(mensajePersonalizado)}`;
+                    waTab.location.href = url; 
+                }
+
+                cargarSolicitudes(); 
+
+            } catch (error) {
+                if (waTab) waTab.close();
+                alert("Error de conexión al guardar el estado.");
+            }
+        }
+
+        function enviarWhatsApp(telefono, nombre, fecha) {
+            if(!telefono || telefono === 'undefined') return alert("El cliente no dejó un número válido.");
+            
+            let num = telefono.replace(/\D/g,'');
+            if(num.startsWith('0')) num = '58' + num.substring(1);
+            if(!num.startsWith('58')) num = '58' + num;
+
+            const mensaje = `Hola ${nombre}, te contactamos de *fletero.app* 🚚. Hemos recibido tu solicitud de flete para la fecha ${fecha}. Nos estamos comunicando para confirmar nuestra disponibilidad y afinar los detalles.`;
+            
+            const url = `https://wa.me/${num}?text=${encodeURIComponent(mensaje)}`;
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
+</html>
